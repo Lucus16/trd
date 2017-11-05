@@ -1,15 +1,30 @@
 #!/usr/bin/env python3
 
 # Wishlist:
-# 1. disjoint-set data structure
-# 2. prim or kruskal
-# 3. dijkstra
+# 1. disjoint set operations
+# 2. dijkstra
+# 3. splay tree operations
+# 4. all intersections
 
 # Solving shortlist:
 # 1. Dynamic programming (lru_cache)
 # 2. Binary search on decision problem
 
 def maxflow(edges, source, sink):
+    '''Implements Dinic' algorithm, O(V^2 * E)
+    >>> edges = {1: {2: 3, 3: 3}, 2: {3: 2, 4: 3}, 3: {5: 2},
+    ...          4: {5: 4, 6: 2}, 5: {6: 3}, 6: {}}
+    >>> maxflow(edges, 1, 6)
+    5
+    >>> for i in range(1, 7):
+    ...     print(*[edges[i].get(j, '-') for j in range(1, 7)])
+    - 0 1 - - -
+    3 - 2 0 - -
+    2 0 - - 0 -
+    - 3 - - 3 0
+    - - 2 1 - 0
+    - - - 2 3 -
+    '''
     INF = 2 ** 64
     def dfs(x, inflow):
         if x == source:
@@ -50,7 +65,7 @@ def maxflow(edges, source, sink):
         dfs(sink, INF)
 
 def convexhull(points):
-    '''
+    '''Implements Andrew's monotone chain, O(n log n)
     >>> convexhull([(1, 1, 'a'), (0, -3, 'b'), (-1, 1, 'c'), (-1, -1, 'd'),
     ...             (3, 0, 'e'), (-3, 0, 'f'), (1, -1, 'g'), (0, 3, 'h')])
     [(-3, 0, 'f'), (0, 3, 'h'), (3, 0, 'e'), (0, -3, 'b')]
@@ -112,11 +127,12 @@ def bfs(edges, todo, finish=[]):
         todo = newtodo
 
 def primelist(n):
-    '''
+    '''Implements Sieve of Eratosthenes, O(n log n)
     >>> primelist(23)
     [2, 3, 5, 7, 11, 13, 17, 19]
     '''
-    if n < 3: return []
+    if n < 3:
+        return []
     pl = [True] * (n // 2)
     for k in range(3, int(n ** 0.5) + 1, 2):
         if pl[k // 2]:
@@ -127,16 +143,23 @@ def primelist(n):
     return r
 
 def minspantree(edges, start):
-    from heapq import heappush, heappop
-    mst = { start: [] }
-    frontier = [(d, n, start) for n, d in edges[start]]
+    '''Implements Prim's algorithm, O(E log V)
+    >>> edges = {1: {2: 3, 4: 1}, 2: {1: 3, 4: 2},
+    ...          3: {4: 4}, 4: {1: 1, 2: 2, 3: 4}}
+    >>> minspantree(edges, next(iter(edges)))
+    {1: {4: 1}, 4: {1: 1, 2: 2, 3: 4}, 2: {4: 2}, 3: {4: 4}}
+    '''
+    from heapq import heappush, heappop, heapify
+    mst = {start: dict()}
+    frontier = [(d, n, start) for n, d in edges[start].items()]
     heapify(frontier)
     while frontier:
         d, v, p = heappop(frontier)
-        if v in mst: continue
-        mst[v] = [(p, d)]
-        mst[p].append((v, d))
-        for n, d in edges[v]:
+        if v in mst:
+            continue
+        mst[v] = {p: d}
+        mst[p][v] = d
+        for n, d in edges[v].items():
             heappush(frontier, (d, n, v))
     return mst
 
@@ -146,7 +169,7 @@ def param(x1, y1, x2, y2, x, y):
     '''Value of projection of x, y on line if x1, y1 is 0 and x2, y2 is 1'''
     d1x, d1y = x2 - x1, y2 - y1                                 # d1 = p2 - p1
     d2x, d2y = x - x1, y - y1                                   # d2 = p - p1
-    return (d1x * d2x + d1y * d2y) / (d1x * d1x + d1y * d1y)    # d1.d2 - |d1|
+    return (d1x * d2x + d1y * d2y) / (d1x * d1x + d1y * d1y)    # d1.d2 / d1.d1
 
 def project(x1, y1, x2, y2, x, y):
     '''Project point x, y on line defined by x1, y1 and x2, y2'''
@@ -174,7 +197,8 @@ def intersection(x1, y1, x2, y2, x3, y3, x4, y4):
     d1x, d1y = x1 - x2, y1 - y2
     d2x, d2y = x3 - x4, y3 - y4
     D = d1x * d2y - d1y * d2x
-    if not D: return None
+    if not D:
+        return None
     p1, p2 = x1 * y2 - y1 * x2, x3 * y4 - y3 * x4
     return (p1 * d2x - d1x * p2) / D, (p1 * d2y - d1y * p2) / D
 
