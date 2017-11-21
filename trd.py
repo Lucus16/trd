@@ -10,8 +10,10 @@
 # 1. Dynamic programming (lru_cache)
 # 2. Binary search on decision problem
 
+INF = 1e20
+
 def maxflow(edges, source, sink):
-    '''Implements Dinic' algorithm, O(V^2 * E)
+    '''Dinic' algorithm, O(V^2 * E)
     >>> edges = {1: {2: 3, 3: 3}, 2: {3: 2, 4: 3}, 3: {5: 2},
     ...          4: {5: 4, 6: 2}, 5: {6: 3}, 6: {}}
     >>> maxflow(edges, 1, 6)
@@ -65,7 +67,7 @@ def maxflow(edges, source, sink):
         dfs(sink, INF)
 
 def convexhull(points):
-    '''Implements Andrew's monotone chain, O(n log n)
+    '''Andrew's monotone chain, O(n log n)
     >>> convexhull([(1, 1, 'a'), (0, -3, 'b'), (-1, 1, 'c'), (-1, -1, 'd'),
     ...             (3, 0, 'e'), (-3, 0, 'f'), (1, -1, 'g'), (0, 3, 'h')])
     [(-3, 0, 'f'), (0, 3, 'h'), (3, 0, 'e'), (0, -3, 'b')]
@@ -127,7 +129,7 @@ def bfs(edges, todo, finish=[]):
         todo = newtodo
 
 def primelist(n):
-    '''Implements Sieve of Eratosthenes, O(n log n)
+    '''Sieve of Eratosthenes, O(n log n)
     >>> primelist(23)
     [2, 3, 5, 7, 11, 13, 17, 19]
     '''
@@ -143,7 +145,7 @@ def primelist(n):
     return r
 
 def minspantree(edges, start):
-    '''Implements Prim's algorithm, O(E log V)
+    '''Prim's algorithm, O(E log V)
     >>> edges = {1: {2: 3, 4: 1}, 2: {1: 3, 4: 2},
     ...          3: {4: 4}, 4: {1: 1, 2: 2, 3: 4}}
     >>> minspantree(edges, next(iter(edges)))
@@ -161,6 +163,22 @@ def minspantree(edges, start):
         mst[p][v] = d
         for n, d in edges[v].items():
             heappush(frontier, (d, n, v))
+    return mst
+
+def minspantree2(dists):
+    '''Prim's algorithm on adjacency matrices, O(V^2)
+    >>> dists = [[0, 3, 7, 1], [3, 0, 7, 2], [7, 7, 0, 4], [1, 2, 4, 0]]
+    >>> minspantree2(dists)
+    {0: {3: 1}, 3: {0: 1, 1: 2, 2: 4}, 1: {3: 2}, 2: {3: 4}}
+    '''
+    mst = {0: dict()}
+    todo = [(d, t, 0) for t, d in enumerate(dists[0]) if t != 0]
+    while todo:
+        d, t, s = min(todo)
+        mst[t] = {s: d}
+        mst[s][t] = d
+        todo = [(od, ot, os) if od < dists[ot][t] else (dists[ot][t], ot, t)
+                for od, ot, os in todo if t != ot]
     return mst
 
 # LINEAR ALGEBRA
