@@ -10,8 +10,6 @@
 # 1. Dynamic programming (lru_cache)
 # 2. Binary search on decision problem
 
-INF = 1e20
-
 def maxflow(edges, source, sink):
     '''Dinic' algorithm, O(V^2 * E)
     >>> edges = {1: {2: 3, 3: 3}, 2: {3: 2, 4: 3}, 3: {5: 2},
