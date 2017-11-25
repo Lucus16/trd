@@ -182,34 +182,52 @@ def minspantree2(dists):
 # LINEAR ALGEBRA
 
 def param(x1, y1, x2, y2, x, y):
-    '''Value of projection of x, y on line if x1, y1 is 0 and x2, y2 is 1'''
+    '''Value of projection of x, y on line if x1, y1 is 0 and x2, y2 is 1
+    >>> param(1, 1, 2, 3, 3.4, 0.8)
+    0.4
+    '''
     d1x, d1y = x2 - x1, y2 - y1                                 # d1 = p2 - p1
     d2x, d2y = x - x1, y - y1                                   # d2 = p - p1
     return (d1x * d2x + d1y * d2y) / (d1x * d1x + d1y * d1y)    # d1.d2 / d1.d1
 
 def project(x1, y1, x2, y2, x, y):
-    '''Project point x, y on line defined by x1, y1 and x2, y2'''
+    '''Project point x, y on line defined by x1, y1 and x2, y2
+    >>> project(1, 1, 2, 3, 3.4, 0.8)
+    (1.4, 1.8)
+    '''
     p = param(x1, y1, x2, y2, x, y)
     return x1 + p * (x2 - x1), y1 + p * (y2 - y1)
 
 def mirror(x1, y1, x2, y2, x, y):
-    '''Mirror point x, y over line defined by x1, y1 and x2, y2'''
+    '''Mirror point x, y over line defined by x1, y1 and x2, y2
+    >>> mirror(1, 1, 3, 2, 2, 4)
+    (4.0, 0.0)
+    '''
     x3, y3 = project(x1, y1, x2, y2, x, y)  # p3 = project(p1, p2, p)
     return x3 * 2 - x, y3 * 2 - y           # p3 * 2 - p
 
 def dist(x1, y1, x2, y2):
-    '''Distance from point x1, y1 to point x2, y2'''
+    '''Distance from point x1, y1 to point x2, y2
+    >>> dist(1, 1, 4, 5)
+    5.0
+    '''
     from math import sqrt
     dx, dy = x2 - x1, y2 - y1
     return sqrt(dx * dx + dy * dy)
 
 def linepointdist(x1, x2, y1, y2, x, y):
-    '''Distance from point x, y to line defined by x1, y1 and x2, y2'''
+    '''Distance from point x, y to line defined by x1, y1 and x2, y2
+    >>> linepointdist(1, 1, 4, 5, -4, 4)
+    5.0
+    '''
     x3, y3 = project(x1, y1, x2, y2, x, y)
     return dist(x3, y3, x, y)
 
 def intersection(x1, y1, x2, y2, x3, y3, x4, y4):
-    '''Intersection point between two lines'''
+    '''Intersection point between two lines
+    >>> intersection(1, 1, 5, 3, 2, 3, 5, 0)
+    (3.0, 2.0)
+    '''
     d1x, d1y = x1 - x2, y1 - y2
     d2x, d2y = x3 - x4, y3 - y4
     D = d1x * d2y - d1y * d2x
@@ -219,7 +237,10 @@ def intersection(x1, y1, x2, y2, x3, y3, x4, y4):
     return (p1 * d2x - d1x * p2) / D, (p1 * d2y - d1y * p2) / D
 
 def hasintersection(x1, y1, x2, y2, x3, y3, x4, y4):
-    '''Wether the two given line segments intersect'''
+    '''Wether the two given line segments intersect
+    >>> hasintersection(1, 1, 2, 3, 2, 1, 1, 4)
+    True
+    '''
     x, y = intersection(x1, y1, x2, y2, x3, y3, x4, y4)
     p1 = param(x1, y1, x2, y2, x, y)
     p2 = param(x3, y3, x4, y4, x, y)
