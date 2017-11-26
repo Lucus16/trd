@@ -215,9 +215,9 @@ def dist(x1, y1, x2, y2):
     dx, dy = x2 - x1, y2 - y1
     return sqrt(dx * dx + dy * dy)
 
-def linepointdist(x1, x2, y1, y2, x, y):
+def linepointdist(x1, y1, x2, y2, x, y):
     '''Distance from point x, y to line defined by x1, y1 and x2, y2
-    >>> linepointdist(1, 1, 4, 5, -4, 4)
+    >>> linepointdist(1, 1, 4, 5, 5, -2)
     5.0
     '''
     x3, y3 = project(x1, y1, x2, y2, x, y)
