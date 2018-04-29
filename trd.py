@@ -2,7 +2,6 @@
 
 # Wishlist:
 # 1. disjoint set operations
-# 2. dijkstra
 # 3. splay tree operations
 # 4. all intersections
 # 5. tarjan's strongly connected components
@@ -87,7 +86,7 @@ def convexhull(points):
     return half(points) + half(reversed(points))
 
 def dfs(edges, todo):
-    '''
+    '''Depth-first search, O(V + E)
     >>> edges = {1: [2, 6], 2: [3, 5], 3: [4], 4: [2, 8],
     ...          5: [4, 7], 6: [5, 7], 7: [6], 8: [7]}
     >>> list(dfs(edges, [1]))
@@ -104,7 +103,7 @@ def dfs(edges, todo):
             todo.extend(reversed(edges[x]))
 
 def bfs(edges, todo, finish=[]):
-    '''
+    '''Breadth-first search, O(V + E)
     >>> edges = {1: [2, 6], 2: [3, 5], 3: [4], 4: [2, 8],
     ...          5: [4, 7], 6: [5, 7], 7: [6], 8: [7]}
     >>> list(bfs(edges, [1]))
@@ -127,43 +126,6 @@ def bfs(edges, todo, finish=[]):
                     newtodo.append(y)
         todo = newtodo
 
-def primelist(n):
-    '''Sieve of Eratosthenes, O(n log n)
-    >>> primelist(23)
-    [2, 3, 5, 7, 11, 13, 17, 19]
-    '''
-    if n < 3:
-        return []
-    pl = [True] * (n // 2)
-    for k in range(3, int(n ** 0.5) + 1, 2):
-        if pl[k // 2]:
-            kk = (k * k) // 2
-            pl[kk::k] = [False] * len(range(kk, n // 2, k))
-    r = [i for i, x in zip(range(1, n, 2), pl) if x]
-    r[0] = 2
-    return r
-
-def minspantree(edges, start):
-    '''Prim's algorithm, O(E log V)
-    >>> edges = {1: {2: 3, 4: 1}, 2: {1: 3, 4: 2},
-    ...          3: {4: 4}, 4: {1: 1, 2: 2, 3: 4}}
-    >>> minspantree(edges, next(iter(edges)))
-    {1: {4: 1}, 4: {1: 1, 2: 2, 3: 4}, 2: {4: 2}, 3: {4: 4}}
-    '''
-    from heapq import heappush, heappop, heapify
-    mst = {start: dict()}
-    frontier = [(d, n, start) for n, d in edges[start].items()]
-    heapify(frontier)
-    while frontier:
-        d, v, p = heappop(frontier)
-        if v in mst:
-            continue
-        mst[v] = {p: d}
-        mst[p][v] = d
-        for n, d in edges[v].items():
-            heappush(frontier, (d, n, v))
-    return mst
-
 def minspantree2(dists):
     '''Prim's algorithm on adjacency matrices, O(V^2)
     >>> dists = [[0, 3, 7, 1], [3, 0, 7, 2], [7, 7, 0, 4], [1, 2, 4, 0]]
@@ -179,6 +141,84 @@ def minspantree2(dists):
         todo = [(od, ot, os) if od < dists[ot][t] else (dists[ot][t], ot, t)
                 for od, ot, os in todo if t != ot]
     return mst
+
+def minspantree(edges):
+    '''Prim's algorithm, O(E log V)
+    >>> edges = {1: {2: 3, 4: 1}, 2: {1: 3, 4: 2},
+    ...          3: {4: 4}, 4: {1: 1, 2: 2, 3: 4}}
+    >>> minspantree(edges)
+    {1: {4: 1}, 4: {1: 1, 2: 2, 3: 4}, 2: {4: 2}, 3: {4: 4}}
+    '''
+    from heapq import heappush, heappop, heapify
+    start = next(iter(edges))
+    mst = {start: dict()}
+    frontier = [(d, v, start) for v, d in edges[start].items()]
+    heapify(frontier)
+    while frontier:
+        d, v, p = heappop(frontier)
+        if v in mst:
+            continue
+        mst[v] = {p: d}
+        mst[p][v] = d
+        for n, nd in edges[v].items():
+            heappush(frontier, (nd, n, v))
+    return mst
+
+def shortestpaths(edges, start, finish=[]):
+    '''Dijkstra's algorithm, O(E log V)
+    >>> edges = {1: {2: 7, 3: 9, 6: 14}, 2: {1: 7, 3: 10, 4: 15},
+    ...     3: {1: 9, 2: 10, 4: 11, 6: 2}, 4: {2: 15, 3: 11, 5: 6},
+    ...     5: {4: 6, 6: 9}, 6: {1: 14, 3: 2, 5: 9}}
+    >>> shortestpaths(edges, [1], [6])
+    ({1: 0, 2: 7, 3: 9, 6: 11}, {2: 1, 3: 1, 6: 3})
+    '''
+    from heapq import heappush, heappop, heapify
+    from math import inf
+    dist = {x: 0 for x in start}
+    prev = dict()
+    frontier = [(d, v, p) for p in start for v, d in edges[p].items()]
+    heapify(frontier)
+    while frontier:
+        d, v, p = heappop(frontier)
+        if v in dist:
+            continue
+        dist[v] = d
+        prev[v] = p
+        if v in finish:
+            return dist, prev
+        for n, nd in edges[v].items():
+            heappush(frontier, (d + nd, n, v))
+    return dist, prev
+
+def shortestpath(edges, start, finish):
+    '''Dijkstra's algorithm, O(E log V)
+    >>> edges = {1: {2: 7, 3: 9, 6: 14}, 2: {1: 7, 3: 10, 4: 15},
+    ...     3: {1: 9, 2: 10, 4: 11, 6: 2}, 4: {2: 15, 3: 11, 5: 6},
+    ...     5: {4: 6, 6: 9}, 6: {1: 14, 3: 2, 5: 9}}
+    >>> list(shortestpath(edges, 1, 6))
+    [1, 3, 6]
+    '''
+    dist, prev = shortestpaths(edges, [start], [finish])
+    path = [finish]
+    while path[-1] in prev:
+        path.append(prev[path[-1]])
+    return reversed(path)
+
+def primelist(n):
+    '''Sieve of Eratosthenes, O(n log n)
+    >>> primelist(23)
+    [2, 3, 5, 7, 11, 13, 17, 19]
+    '''
+    if n < 3:
+        return []
+    pl = [True] * (n // 2)
+    for k in range(3, int(n ** 0.5) + 1, 2):
+        if pl[k // 2]:
+            kk = (k * k) // 2
+            pl[kk::k] = [False] * len(range(kk, n // 2, k))
+    r = [i for i, x in zip(range(1, n, 2), pl) if x]
+    r[0] = 2
+    return r
 
 # LINEAR ALGEBRA
 
