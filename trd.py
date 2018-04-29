@@ -5,6 +5,7 @@
 # 2. dijkstra
 # 3. splay tree operations
 # 4. all intersections
+# 5. tarjan's strongly connected components
 
 # Solving shortlist:
 # 1. Dynamic programming (lru_cache)
@@ -25,14 +26,14 @@ def maxflow(edges, source, sink):
     - - 2 1 - 0
     - - - 2 3 -
     '''
-    INF = 2 ** 64
+    inf = 2 ** 64 # Faster than math.inf
     def dfs(x, inflow):
         if x == source:
             return inflow
         rem = inflow
         for y in edges[x]:
             cap = edges[y][x]
-            if cap > 0 and level[x] > level.get(y, INF):
+            if cap > 0 and level[x] > level.get(y, inf):
                 used = dfs(y, min(cap, rem))
                 edges[x][y] += used
                 edges[y][x] -= used
@@ -62,7 +63,7 @@ def maxflow(edges, source, sink):
             todo = newtodo
         if sink not in level:
             return sum(edges[sink].values())
-        dfs(sink, INF)
+        dfs(sink, inf)
 
 def convexhull(points):
     '''Andrew's monotone chain, O(n log n)
@@ -181,14 +182,31 @@ def minspantree2(dists):
 
 # LINEAR ALGEBRA
 
+def dist(x1, y1, x2, y2):
+    '''Distance from point x1, y1 to point x2, y2
+    >>> dist(1, 1, 4, 5)
+    5.0
+    '''
+    from math import sqrt # sqrt is twice as fast as **0.5
+    dx, dy = x2 - x1, y2 - y1
+    return sqrt(dx * dx + dy * dy)
+
+def normalize(x1, y1, x2, y2):
+    '''Normalize vector to unit length
+    >>> normalize(1.0, 1.0, 5.0, 1.0)
+    (1.0, 1.0, 2.0, 1.0)
+    '''
+    f = 1 / dist(x1, y1, x2, y2)
+    return (x1, y1, x1 + (x2 - x1) * f, y1 + (y2 - y1) * f)
+
 def param(x1, y1, x2, y2, x, y):
     '''Value of projection of x, y on line if x1, y1 is 0 and x2, y2 is 1
     >>> param(1, 1, 2, 3, 3.4, 0.8)
     0.4
     '''
-    d1x, d1y = x2 - x1, y2 - y1                                 # d1 = p2 - p1
-    d2x, d2y = x - x1, y - y1                                   # d2 = p - p1
-    return (d1x * d2x + d1y * d2y) / (d1x * d1x + d1y * d1y)    # d1.d2 / d1.d1
+    d1x, d1y = x2 - x1, y2 - y1                              # d1 = p2 - p1
+    d2x, d2y = x - x1, y - y1                                # d2 = p - p1
+    return (d1x * d2x + d1y * d2y) / (d1x * d1x + d1y * d1y) # d1.d2 / d1.d1
 
 def project(x1, y1, x2, y2, x, y):
     '''Project point x, y on line defined by x1, y1 and x2, y2
@@ -203,17 +221,8 @@ def mirror(x1, y1, x2, y2, x, y):
     >>> mirror(1, 1, 3, 2, 2, 4)
     (4.0, 0.0)
     '''
-    x3, y3 = project(x1, y1, x2, y2, x, y)  # p3 = project(p1, p2, p)
-    return x3 * 2 - x, y3 * 2 - y           # p3 * 2 - p
-
-def dist(x1, y1, x2, y2):
-    '''Distance from point x1, y1 to point x2, y2
-    >>> dist(1, 1, 4, 5)
-    5.0
-    '''
-    from math import sqrt
-    dx, dy = x2 - x1, y2 - y1
-    return sqrt(dx * dx + dy * dy)
+    x3, y3 = project(x1, y1, x2, y2, x, y) # p3 = project(p1, p2, p)
+    return x3 * 2 - x, y3 * 2 - y          # p3 * 2 - p
 
 def linepointdist(x1, y1, x2, y2, x, y):
     '''Distance from point x, y to line defined by x1, y1 and x2, y2
@@ -241,7 +250,10 @@ def hasintersection(x1, y1, x2, y2, x3, y3, x4, y4):
     >>> hasintersection(1, 1, 2, 3, 2, 1, 1, 4)
     True
     '''
-    x, y = intersection(x1, y1, x2, y2, x3, y3, x4, y4)
+    r = intersection(x1, y1, x2, y2, x3, y3, x4, y4)
+    if r is None:
+        return False
+    x, y = r
     p1 = param(x1, y1, x2, y2, x, y)
     p2 = param(x3, y3, x4, y4, x, y)
     return 0 <= p1 <= 1 and 0 <= p2 <= 1
