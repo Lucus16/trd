@@ -173,7 +173,6 @@ def shortestpaths(edges, start, finish=[]):
     ({1: 0, 2: 7, 3: 9, 6: 11}, {2: 1, 3: 1, 6: 3})
     '''
     from heapq import heappush, heappop, heapify
-    from math import inf
     dist = {x: 0 for x in start}
     prev = dict()
     frontier = [(d, v, p) for p in start for v, d in edges[p].items()]
@@ -186,8 +185,8 @@ def shortestpaths(edges, start, finish=[]):
         prev[v] = p
         if v in finish:
             return dist, prev
-        for n, nd in edges[v].items():
-            heappush(frontier, (d + nd, n, v))
+        for u, ud in edges[v].items():
+            heappush(frontier, (d + ud, u, v))
     return dist, prev
 
 def shortestpath(edges, start, finish):
@@ -280,7 +279,7 @@ def intersection(x1, y1, x2, y2, x3, y3, x4, y4):
     d1x, d1y = x1 - x2, y1 - y2
     d2x, d2y = x3 - x4, y3 - y4
     D = d1x * d2y - d1y * d2x
-    if not D:
+    if D == 0:
         return None
     p1, p2 = x1 * y2 - y1 * x2, x3 * y4 - y3 * x4
     return (p1 * d2x - d1x * p2) / D, (p1 * d2y - d1y * p2) / D
