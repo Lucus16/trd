@@ -164,44 +164,46 @@ def minspantree(edges):
             heappush(frontier, (nd, n, v))
     return mst
 
-def shortestpaths(edges, start, finish=[]):
-    '''Dijkstra's algorithm, O(E log V)
+def shortestpaths(edges, start, finish=[], h=lambda v: 0):
+    '''A*, O(E log V)
+    Distances are only correct for nodes in the shortest path. Without a finish,
+    they are correct for all nodes. The heuristic function can be used to give
+    a lower bound of distance from node to goal to aid search.
     >>> edges = {1: {2: 7, 3: 9, 6: 14}, 2: {1: 7, 3: 10, 4: 15},
     ...     3: {1: 9, 2: 10, 4: 11, 6: 2}, 4: {2: 15, 3: 11, 5: 6},
     ...     5: {4: 6, 6: 9}, 6: {1: 14, 3: 2, 5: 9}}
-    >>> shortestpaths(edges, [1], [6])
-    ({1: 0, 2: 7, 3: 9, 6: 11}, {2: 1, 3: 1, 6: 3})
+    >>> dist, prev = shortestpaths(edges, [1], [6])
+    >>> list(reversed(list(getpath(prev, 6))))
+    [1, 3, 6]
+    >>> shortestpaths(edges, [1])
+    ({1: 0, 2: 7, 3: 9, 6: 11, 4: 20, 5: 20}, {2: 1, 3: 1, 6: 3, 4: 3, 5: 6})
     '''
     from heapq import heappush, heappop, heapify
     dist = {x: 0 for x in start}
     prev = dict()
-    frontier = [(d, v, p) for p in start for v, d in edges[p].items()]
+    frontier = [(h(v), v, None) for v in start]
     heapify(frontier)
     while frontier:
-        d, v, p = heappop(frontier)
-        if v in dist:
+        _, v, p = heappop(frontier)
+        if v in prev:
             continue
-        dist[v] = d
-        prev[v] = p
+        if p is not None:
+            prev[v] = p
         if v in finish:
-            return dist, prev
-        for u, ud in edges[v].items():
-            heappush(frontier, (d + ud, u, v))
+            break
+        for u, dvu in edges[v].items():
+            du = dist[v] + dvu
+            if u not in dist or du < dist[u]:
+                dist[u] = du
+                heappush(frontier, (du + h(u), u, v))
     return dist, prev
 
-def shortestpath(edges, start, finish):
-    '''Dijkstra's algorithm, O(E log V)
-    >>> edges = {1: {2: 7, 3: 9, 6: 14}, 2: {1: 7, 3: 10, 4: 15},
-    ...     3: {1: 9, 2: 10, 4: 11, 6: 2}, 4: {2: 15, 3: 11, 5: 6},
-    ...     5: {4: 6, 6: 9}, 6: {1: 14, 3: 2, 5: 9}}
-    >>> list(shortestpath(edges, 1, 6))
-    [1, 3, 6]
-    '''
-    dist, prev = shortestpaths(edges, [start], [finish])
-    path = [finish]
-    while path[-1] in prev:
-        path.append(prev[path[-1]])
-    return reversed(path)
+def getpath(to, node):
+    '''Get a path from a next-node relation.'''
+    yield node
+    while node in to:
+        node = to[node]
+        yield node
 
 def primelist(n):
     '''Sieve of Eratosthenes, O(n log n)
